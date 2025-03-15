@@ -18,7 +18,7 @@ class PostController extends Controller
             'categories.*' => 'exists:categories,id',
         ]);
 
-        $post = Auth::user()->posts()->create([
+        $post = Auth::user()-> posts()->create([
             'title' => $validated['title'],
             'excerpt' => $validated['excerpt'],
             'content' => $validated['content'],
