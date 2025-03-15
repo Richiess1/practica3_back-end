@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('post', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();                        // a. id
+            $table->string('title');             // b. title
+            $table->string('slug')->unique();    // c. slug
+            $table->text('excerpt');             // d. excerpt
+            $table->longText('content');         // e. content
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // f. user_id 
+            $table->timestamps();                // g-h. created_at y updated_at
         });
     }
 
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('post');
+        Schema::dropIfExists('posts');
     }
 };
