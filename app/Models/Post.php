@@ -14,8 +14,10 @@ class Post extends Model
 
     protected $fillable = [
         'title',
+        'slug', 
         'excerpt',
         'content',
+        'user_id',
     ];
 
     protected static function boot()
@@ -30,12 +32,13 @@ class Post extends Model
     public static function generateUniqueSlug(string $title): string
     {
         $slug = Str::slug($title);
-        $count = static::where('slug', $slug)->count();
+        $originalSlug = $slug;
+        $count = 1;
 
-        if ($count > 0) {
-            $newSlug = "{$slug}-{$count}";
-
-            return $newSlug;
+       
+        while (static::where('slug', $slug)->exists()) {
+            $slug = "{$originalSlug}-{$count}";
+            $count++;
         }
 
         return $slug;
