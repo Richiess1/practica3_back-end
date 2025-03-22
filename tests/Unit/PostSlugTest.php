@@ -37,7 +37,7 @@ test('it generates unique slug when duplicate exists', function () {
 });
 
 test('it handles special characters in title', function () {
-    // Test with special characters
+    // special characters test
     $slug = Post::generateUniqueSlug('My Test Post: With "Special" Characters!');
     expect($slug)->toBe('my-test-post-with-special-characters');
 });
@@ -45,13 +45,13 @@ test('it handles special characters in title', function () {
 test('it creates slug automatically when creating post', function () {
     $user = User::factory()->create();
 
-    // Use the relationship to create the post
+    // the relationship to create the post
     $post = $user->posts()->create([
         'title' => 'Automatic Slug Test',
         'excerpt' => 'Test excerpt',
         'content' => 'Test content',
     ]);
 
-    // Verify the slug was automatically generated
+    // slug automatically generated the slug
     expect($post->slug)->toBe('automatic-slug-test');
 });
