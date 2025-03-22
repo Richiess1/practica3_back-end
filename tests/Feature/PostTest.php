@@ -24,6 +24,8 @@ class PostTest extends TestCase
                 'categories' => $categories->pluck('id')->toArray(),
             ]);
 
+        dd($response->json()); // Para depuración
+
         $response->assertCreated()
             ->assertJsonStructure([
                 'id',
@@ -111,7 +113,7 @@ class PostTest extends TestCase
         $user = User::factory()->create();
         $category = Category::factory()->create(['name' => 'demo']);
 
-        $post = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson('/api/v1/posts', [
                 'title' => 'Mi nueva publicación',
                 'excerpt' => 'Lorem ipsum sit amet',
@@ -121,6 +123,8 @@ class PostTest extends TestCase
 
         $response = $this->actingAs($user)
             ->getJson('/api/v1/posts');
+
+        dd($response->json()); // Para depuración
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -179,5 +183,114 @@ class PostTest extends TestCase
         $response = $this->getJson('/api/v1/posts');
 
         $response->assertUnauthorized();
+    }
+
+    public function test_user_can_show_single_post(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $post = $this->actingAs($user)
+            ->postJson('/api/v1/posts', [
+                'title' => 'Mi nueva publicación',
+                'excerpt' => 'Lorem ipsum sit amet',
+                'content' => 'Lorem ipsum dolor sit amet.',
+                'categories' => [$category->id],
+            ])
+            ->json('data');
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/v1/posts/{$post['id']}");
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'id',
+                'title',
+                'slug',
+                'excerpt',
+                'content',
+                'categories',
+                'user',
+                'created_at',
+                'updated_at',
+            ])
+            ->assertJsonFragment([
+                'title' => 'Mi nueva publicación',
+            ]);
+    }
+
+    public function test_user_cannot_show_non_existing_post(): void
+    {
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)
+            ->getJson('/api/v1/posts/999');
+
+        $response->assertNotFound();
+    }
+
+    public function test_user_can_update_post(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $post = $this->actingAs($user)
+            ->postJson('/api/v1/posts', [
+                'title' => 'Mi nueva publicación',
+                'excerpt' => 'Lorem ipsum sit amet',
+                'content' => 'Lorem ipsum dolor sit amet.',
+                'categories' => [$category->id],
+            ])
+            ->json('data');
+
+        $response = $this->actingAs($user)
+            ->putJson("/api/v1/posts/{$post['id']}", [
+                'title' => 'Mi publicación actualizada',
+                'excerpt' => 'Nuevo extracto',
+                'content' => 'Contenido actualizado',
+                'categories' => [$category->id],
+            ]);
+
+        $response->assertOk()
+            ->assertJsonFragment([
+                'title' => 'Mi publicación actualizada',
+            ]);
+    }
+
+    public function test_user_can_delete_post(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->create();
+        $post = $this->actingAs($user)
+            ->postJson('/api/v1/posts', [
+                'title' => 'Mi nueva publicación',
+                'excerpt' => 'Lorem ipsum sit amet',
+                'content' => 'Lorem ipsum dolor sit amet.',
+                'categories' => [$category->id],
+            ])
+            ->json('data');
+
+        $response = $this->actingAs($user)
+            ->deleteJson("/api/v1/posts/{$post['id']}");
+
+        $response->assertNoContent();
+        $this->assertDatabaseMissing('posts', ['id' => $post['id']]);
+    }
+
+    public function test_user_cannot_delete_other_users_post(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $category = Category::factory()->create();
+        $post = $this->actingAs($otherUser)
+            ->postJson('/api/v1/posts', [
+                'title' => 'Post de otro usuario',
+                'excerpt' => 'Lorem ipsum sit amet',
+                'content' => 'Contenido de otro usuario',
+                'categories' => [$category->id],
+            ])
+            ->json('data');
+
+        $response = $this->actingAs($user)
+            ->deleteJson("/api/v1/posts/{$post['id']}");
+
+        $response->assertForbidden();
     }
 }
