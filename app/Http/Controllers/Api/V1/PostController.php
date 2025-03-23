@@ -12,7 +12,7 @@ use App\Http\Resources\PostSummaryResource;
 class PostController extends Controller
 {
     
-    // Método para devolver un solo post al crearlo
+    // método para devolver un solo post al crearlo
     public function store(Request $request)
     {
         
@@ -36,29 +36,29 @@ class PostController extends Controller
     }
 
     public function index(Request $request)
-{
-    /**
-     * @var \App\Models\User
-     */
-    $user = Auth::user();
+    {
+        /**
+         * @var \App\Models\User
+         */
+        $user = Auth::user();
 
-    // Cargar relaciones con solo los campos necesarios
-    $query = $user->posts()->with(['categories:id,name', 'user:id,name']);
+        // cargar relaciones con solo los campos necesarios
+        $query = $user->posts()->with(['categories:id,name', 'user:id,name']);
 
-    // Filtrar por búsqueda si se proporciona
-    if ($request->has('search')) {
-        $search = $request->input('search');
-        $query->where(function ($q) use ($search) {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('content', 'like', "%{$search}%");
-        });
+        // filtrar por búsqueda si se proporciona
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        // fbtener posts paginados
+        $posts = $query->get();
+
+        // retornar colección usando PostSummaryResource
+        return PostSummaryResource::collection($posts);
     }
-
-    // Obtener posts paginados
-    $posts = $query->paginate(10);
-
-    // Retornar colección usando PostSummaryResource
-    return PostSummaryResource::collection($posts);
-}
 
 }
