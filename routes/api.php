@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PostController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
 
 // Public Authentication routes
 Route::post('/v1/register', [AuthController::class, 'register']);

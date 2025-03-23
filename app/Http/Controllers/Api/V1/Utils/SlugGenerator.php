@@ -13,7 +13,7 @@ class SlugGenerator
         $originalSlug = $slug;
         $count = 1;
 
-        // Verifica si el slug ya existe en la BD
+        // verifica si el slug ya existe en la BD
         while (Post::where('slug', $slug)->exists()) {
             $slug = $originalSlug . '-' . $count;
             $count++;
